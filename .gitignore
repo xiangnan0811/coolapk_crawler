@@ -1,0 +1,9 @@
+__pycache__/
+/.vscode
+/.idea
+build
+dbs
+project.egg-info
+
+setup.py
+*.pyc
