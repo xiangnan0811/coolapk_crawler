@@ -28,7 +28,7 @@
   |     ida      |             7.0              |
   |   fiddler    |       v5.0.20202.18177       |
   |    phone     | Pixel-sailfish Android 8.1.0 |
-  |              |            2.4.1             |
+  |   apktool    |            2.4.1             |
 
 # 2. 开始
 
