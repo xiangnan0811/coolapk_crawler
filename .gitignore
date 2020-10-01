@@ -1,6 +1,7 @@
 __pycache__/
 /.vscode
 /.idea
+/logs
 build
 dbs
 project.egg-info
