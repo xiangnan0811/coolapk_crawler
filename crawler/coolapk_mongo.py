@@ -16,24 +16,82 @@ class CoolapkMongo:
         self.db = self.client[MONGO_DATABASE]
         self.user = self.db["user"]
         self.feed = self.db["feed"]
+        self.app = self.db["app"]
+        self.album = self.db["album"]
         self.feed_reply = self.db["feed_reply"]
         logger.add('../logs/mongo.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", level="INFO")
 
     def update_feed(self, feed):
         result = self.feed.update_one({"_id": feed["id"]}, {"$set": feed}, upsert=True)
-        logger.info(self.__process_update_result(result))
+        logger.info(f"update feed successfully feed id --> {feed['id']}")
+        return result
 
     def update_reply(self, reply):
         result = self.feed_reply.update_one({"_id": reply['id']}, {"$set": reply}, upsert=True)
-        logger.info(self.__process_update_result(result))
+        logger.info(f"update reply successfully reply id --> {reply['id']}")
+        return result
+
+    def update_app(self, app):
+        result = self.app.update_one({"_id": app["id"]}, {"$set": app}, upsert=True)
+        logger.info(f"update app successfully app id --> {app['id']}")
+        return result
+
+    def update_album(self, album):
+        result = self.album.update_one({"_id": album["id"]}, {"$set": album}, upsert=True)
+        logger.info(f"update album successfully album id --> {album['id']}")
+        return result
+
+    def update_apps(self, apps):
+        matched_count = 0
+        modified_count = 0
+        inserted_count = 0
+        for app in apps:
+            result = self.update_app(app)
+            mat, mod, ins = self.__process_update_result(result)
+            matched_count += mat
+            modified_count += mod
+            inserted_count += ins
+        logger.info(
+            f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
+
+    def update_albums(self, albums):
+        matched_count = 0
+        modified_count = 0
+        inserted_count = 0
+        for album in albums:
+            result = self.update_album(album)
+            mat, mod, ins = self.__process_update_result(result)
+            matched_count += mat
+            modified_count += mod
+            inserted_count += ins
+        logger.info(
+            f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
 
     def update_feeds(self, feeds):
+        matched_count = 0
+        modified_count = 0
+        inserted_count = 0
         for feed in feeds:
-            self.update_feed(feed)
+            result = self.update_feed(feed)
+            mat, mod, ins = self.__process_update_result(result)
+            matched_count += mat
+            modified_count += mod
+            inserted_count += ins
+        logger.info(
+            f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
 
     def update_replies(self, replies):
+        matched_count = 0
+        modified_count = 0
+        inserted_count = 0
         for reply in replies:
-            self.update_reply(reply)
+            result = self.update_reply(reply)
+            mat, mod, ins = self.__process_update_result(result)
+            matched_count += mat
+            modified_count += mod
+            inserted_count += ins
+        logger.info(
+            f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
 
     def update_user(self, user):
         result = self.user.update_one(
@@ -41,11 +99,20 @@ class CoolapkMongo:
             {"$set": user},
             upsert=True
         )
-        logger.info(self.__process_update_result(result))
+        logger.info(f"update user successfully user id --> {user['id']}")
+        return result
 
     def update_users(self, users):
+        matched_count = 0
+        modified_count = 0
+        inserted_count = 0
         for user in users:
-            self.update_user(user)
+            result = self.update_user(user)
+            mat, mod, ins = self.__process_update_result(result)
+            matched_count += mat
+            modified_count += mod
+            inserted_count += ins
+        logger.info(f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
             
     def find_recent_feed_ids(self, recent_time=1):
         recent_time = timedelta(days=recent_time)
@@ -89,4 +156,15 @@ class CoolapkMongo:
 
     @staticmethod
     def __process_update_result(result):
-        return f"matched_count: {result.matched_count},modified_count: {result.modified_count}"
+        matched_count = 0
+        inserted_count = 0
+        modified_count = 0
+        if result.matched_count and result.modified_count:
+            matched_count = 1
+            modified_count = 1
+        if not result.matched_count and not result.modified_count:
+            inserted_count = 1
+        if result.matched_count and not result.modified_count:
+            matched_count = 1
+
+        return matched_count, modified_count, inserted_count

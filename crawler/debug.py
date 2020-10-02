@@ -47,6 +47,15 @@ coolapk_spider = CoolapkSpider()
 # print(len(feed_infos))
 # print(len(user_infos))
 
+# 6. test search
+# result = coolapk_spider.search(keyword="MT管理器", max_page=2)
+# print(result[0])
+# print(result[1])
+# print(result[2])
+# print(result[3])
+# print(result[4])
+# print(len(result[0]), len(result[1]), len(result[2]), len(result[3]), len(result[4]))
+
 # ------------------------------ test crawler ------------------------------ #
 
 # ------------------------------  test mongo  ------------------------------ #
@@ -60,6 +69,10 @@ coolapk_spider = CoolapkSpider()
 # feed_ids = coolapk_mongo.find_recent_feed_ids(recent_time=2)
 # print(feed_ids)
 
+# 4. test modified_count matched_count
+# result = coolapk_mongo.update_app({"id": 67678, "name": "杜甫"})
+# print(result)
+
 # ------------------------------  test mongo  ------------------------------ #
 
 # ------------------------------  test tasks  ------------------------------ #
@@ -68,12 +81,12 @@ coolapk_spider = CoolapkSpider()
 # print(result)
 
 # 2. get feed from feed_list and save to mongo
-# result = task.get_feed_from_feed_list(max_page=15)
+# result = task.get_feed_from_feed_list(max_page=150)
 # print(f"feed_count: {result[0]}, user_count: {result[1]}")
 
 # 3. get feed reply and save to mongo
-result = task.update_feed_reply()
-print(result)
+# result = task.update_feed_reply()
+# print(result)
 
 # 4. get get user feeds from userhome and save to mongo
 # result = task.update_user_feeds_from_userhome()
@@ -82,4 +95,33 @@ print(result)
 # 5. get update feed reply and save to mongo
 # result = task.update_feed_reply()
 # print(result)
+
+# 6. search_feed
+result = task.search_feed(["破解", "magisk", "刷机", "模块"])
+print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
+
+# 7. search_picture
+result = task.search_picture(["风景", "美女", "高清", "4k"])
+print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
+
+# 8. search_discovery
+result = task.search_discovery(["教程", "理财", "壁纸", "美"])
+print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
+
+# 9. search_album
+result = task.search_album(["magisk", "xposed", "能量", "模块"])
+print(f"album_count --> {result[0]}, user_count --> {result[1]}")
+
+# 10. search_apk
+result = task.search_apk(["论坛", "微博"])
+print(f"app_count --> {result}")
+
+# 11. search_game
+result = task.search_game(["球", "王者荣耀"])
+print(f"game_count --> {result}")
+
+# 12. search_user
+result = task.search_user(["微博", "美"])
+print(f"user_count --> {result}")
+
 # ------------------------------  test tasks  ------------------------------ #
