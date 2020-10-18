@@ -97,31 +97,38 @@ coolapk_spider = CoolapkSpider()
 # print(result)
 
 # 6. search_feed
-result = task.search_feed(["破解", "magisk", "刷机", "模块"])
+keywords = ["破解", "magisk", "刷机", "模块", "风景", "美女", "高清", "4k", "教程", "理财", "壁纸", "美", "magisk", "xposed",
+            "能量", "模块", "论坛", "微博", "球", "王者荣耀", "微博", "美", "上分", "基金", "绿色版", "面具", "想不到", "一加",
+            "华为", 'OPPO', 'VIVO', '三星', 'SAMSUNG', 'APPLE', 'apple', '苹果', '银行', '锤子', '努比亚', '小米', '红米',
+            'realme', 'redmi', '诺基亚', 'nokia', 'HTC', 'htc', '荣耀', 'honor', 'iqoo', 'iQOO', '魅族', 'nubia', '联想',
+            'Moto', '摩托罗拉', '黑鲨', '黑莓', 'ROG', 'google', '谷歌', '佳能', '尼康', '松下', '耳机', '降噪', '真无线',
+            'qq', '音乐', 'root', '天气', '阅读', 'iphone12', '原神', '图标包', 'kwgt', '桌面', '充电', '相机', 'airpods']
+
+result = task.search_feed(keywords)
 print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
 
 # 7. search_picture
-result = task.search_picture(["风景", "美女", "高清", "4k"])
+result = task.search_picture(keywords)
 print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
 
 # 8. search_discovery
-result = task.search_discovery(["教程", "理财", "壁纸", "美"])
+result = task.search_discovery(keywords)
 print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
 
 # 9. search_album
-result = task.search_album(["magisk", "xposed", "能量", "模块"])
+result = task.search_album(keywords)
 print(f"album_count --> {result[0]}, user_count --> {result[1]}")
 
 # 10. search_apk
-result = task.search_apk(["论坛", "微博"])
+result = task.search_apk(keywords)
 print(f"app_count --> {result}")
 
 # 11. search_game
-result = task.search_game(["球", "王者荣耀"])
+result = task.search_game(keywords)
 print(f"game_count --> {result}")
 
 # 12. search_user
-result = task.search_user(["微博", "美"])
+result = task.search_user(keywords)
 print(f"user_count --> {result}")
 
 # ------------------------------  test tasks  ------------------------------ #

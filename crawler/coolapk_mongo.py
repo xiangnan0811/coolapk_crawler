@@ -5,21 +5,23 @@
 """
 import pymongo
 from loguru import logger
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from crawler.config import MONGO_HOST, MONGO_PORT, MONGO_USERNAME, MONGO_PASSWORD, MONGO_DATABASE
 
 
 class CoolapkMongo:
 
     def __init__(self):
-        self.client = pymongo.MongoClient(host=MONGO_HOST, port=MONGO_PORT, username=MONGO_USERNAME, password=MONGO_PASSWORD)
+        self.client = pymongo.MongoClient(host=MONGO_HOST, port=MONGO_PORT, username=MONGO_USERNAME,
+                                          password=MONGO_PASSWORD)
         self.db = self.client[MONGO_DATABASE]
         self.user = self.db["user"]
         self.feed = self.db["feed"]
         self.app = self.db["app"]
         self.album = self.db["album"]
         self.feed_reply = self.db["feed_reply"]
-        logger.add('../logs/mongo.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", level="INFO")
+        logger.add('../logs/mongo_{time}.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+                   level="WARNING", rotation='00:00')
 
     def update_feed(self, feed):
         result = self.feed.update_one({"_id": feed["id"]}, {"$set": feed}, upsert=True)
@@ -51,7 +53,7 @@ class CoolapkMongo:
             matched_count += mat
             modified_count += mod
             inserted_count += ins
-        logger.info(
+        logger.warning(
             f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
 
     def update_albums(self, albums):
@@ -64,7 +66,7 @@ class CoolapkMongo:
             matched_count += mat
             modified_count += mod
             inserted_count += ins
-        logger.info(
+        logger.warning(
             f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
 
     def update_feeds(self, feeds):
@@ -77,7 +79,7 @@ class CoolapkMongo:
             matched_count += mat
             modified_count += mod
             inserted_count += ins
-        logger.info(
+        logger.warning(
             f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
 
     def update_replies(self, replies):
@@ -90,7 +92,7 @@ class CoolapkMongo:
             matched_count += mat
             modified_count += mod
             inserted_count += ins
-        logger.info(
+        logger.warning(
             f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
 
     def update_user(self, user):
@@ -112,43 +114,57 @@ class CoolapkMongo:
             matched_count += mat
             modified_count += mod
             inserted_count += ins
-        logger.info(f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
-            
-    def find_recent_feed_ids(self, recent_time=1):
-        recent_time = timedelta(days=recent_time)
+        logger.warning(
+            f"matched_count: {matched_count}, modified_count: {modified_count}, inserted_count: {inserted_count}")
+
+    def find_recent_feed_ids(self, after_time=1, before_time=0, limit=20000):
+        after_time = timedelta(days=after_time)
+        before_time = timedelta(days=before_time)
         now = datetime.now()
+        before = now - before_time
+        after = now - after_time
         result = self.feed.aggregate([
             {
                 '$match': {
                     'gather_time': {
-                        '$lte': now,
-                        '$gte': now - recent_time,
+                        '$lte': before,
+                        '$gte': after,
+                    },
+                    'status': {
+                        "$nin": ['deleted', 'unauthorized', 'unknown']
                     }
                 }
             }, {
                 '$project': {
                     '_id': 1
                 }
+            }, {
+                '$limit': limit,
             }
         ])
         feed_ids = [feed_id['_id'] for feed_id in list(result)]
         return feed_ids
 
-    def find_recent_user_ids(self, recent_time=1):
-        recent_time = timedelta(days=recent_time)
+    def find_recent_user_ids(self, after_time=1, before_time=0, limit=20000):
+        after_time = timedelta(days=after_time)
+        before_time = timedelta(days=before_time)
         now = datetime.now()
+        before = now - before_time
+        after = now - after_time
         result = self.user.aggregate([
             {
                 '$match': {
                     'gather_time': {
-                        '$lte': now,
-                        '$gte': now - recent_time,
+                        '$lte': before,
+                        '$gte': after,
                     }
                 }
             }, {
                 '$project': {
                     '_id': 1
                 }
+            }, {
+                '$limit': limit,
             }
         ])
         user_ids = [user_id['_id'] for user_id in list(result)]

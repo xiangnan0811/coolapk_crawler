@@ -23,7 +23,7 @@ class CoolapkSpider:
             'X-App-Id': 'com.coolapk.market',
             'X-App-Token': self.__get_token(),
         }
-        logger.add('../logs/crawler.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", level="INFO")
+        logger.add('../logs/crawler_{time}.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", level="WARNING", rotation='00:00')
 
     def __get_token(self):
         """
@@ -135,7 +135,7 @@ class CoolapkSpider:
         user_data = self.__parse_user(user) if user else None
 
         feed_data['id'] = int(data.get("id"))
-        feed_data['userid'] = int(data.get("uid"))
+        feed_data['userid'] = int(data.get("uid", 0))
         feed_data['username'] = data.get("username")
         cover = data.get("message_cover", None)
         feed_data['cover'] = cover if cover else None
@@ -145,7 +145,9 @@ class CoolapkSpider:
         tags = data.get("tags", None)
         feed_data['tags'] = tags if tags else None
         feed_data['title'] = data.get("title")
-        feed_data['create_at'] = datetime.fromtimestamp(int(data.get("dateline")))
+        create_at = data.get("dateline", None)
+        if create_at:
+            feed_data['create_at'] = datetime.fromtimestamp(int(create_at))
         feed_data['last_update_at'] = datetime.fromtimestamp(int(data.get("lastupdate")))
         feed_data['device_name'] = data.get("device_name", None)
         device_title = data.get("device_title", None)
@@ -153,7 +155,9 @@ class CoolapkSpider:
         feed_data['feed_Type'] = data.get("feedType")
         feed_data['feed_Type_Name'] = data.get("feedTypeName")
         feed_data['entityType'] = data.get("entityType")        # feed feed_reply user
-        feed_data['extra_fromApi'] = self.host + data.get("extra_fromApi")
+        extra_fromApi = data.get("extra_fromApi", None)
+        if extra_fromApi:
+            feed_data['extra_fromApi'] = self.host + extra_fromApi
         long_location = data.get("long_location", None)
         feed_data['long_location'] = long_location if long_location else None
         feed_data['pic_list'] = data.get("picArr")
@@ -180,12 +184,11 @@ class CoolapkSpider:
         """
         response = self.__request_feed_detail(feed_id)
         data = response.get("data", None)
-        feed_data = None
-        user_data = None
         if data:
             feed_data, user_data = self.__parse_feed_detail(data)
         else:
             logger.error(f" -- feed detail -- can't get feed detail which feed_id is {feed_id}, response is {response}")
+            feed_data, user_data = self.__parse_error(feed_id=feed_id, data=response)
         return feed_data, user_data
 
     def __request_feed_reply(self, feed_id, page):
@@ -328,7 +331,7 @@ class CoolapkSpider:
         user_data['user_name'] = data.get("username")
         user_data['entity_type'] = data.get("entityType")
         user_data['level'] = data.get("level")
-        user_data['is_developer'] = int(data.get("isDeveloper"))
+        user_data['is_developer'] = data.get("isDeveloper", 0)
         user_data['login_time'] = datetime.fromtimestamp(int(data.get("logintime")))
         user_data['gather_time'] = datetime.now()
         user_data['next_level_experience'] = data.get("next_level_experience")
@@ -484,3 +487,18 @@ class CoolapkSpider:
                     user_infos.extend(user_info)
 
         return app_infos, feed_infos, user_infos, reply_infos, album_infos
+
+    @staticmethod
+    def __parse_error(feed_id, data):
+        try:
+            error = data.get('status', None)
+            if error == -2:
+                status = 'deleted'
+            elif error == -3:
+                status = 'unauthorized'
+            else:
+                status = 'unknown'
+            feed_data = {'id': feed_id, 'status': status}
+            return feed_data, None
+        except AttributeError:
+            return None, None

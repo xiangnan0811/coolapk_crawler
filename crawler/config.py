@@ -21,10 +21,12 @@ DEVICE_LIST = [
 ]
 
 # the recent of feed to update, unit: day
-FEED_TO_UPDATE_DAYS = 5
+FEED_TO_UPDATE_DAYS = 10
 
 # the recent time to update user feeds, unit: day
-UPDATE_USER_FEEDS_DAYS = 5
+UPDATE_USER_FEEDS_AFTER = 7
+UPDATE_USER_FEEDS_BEFORE = 0
+UPDATE_LIMIT = 50000
 
 # max sleep time while requesting api, unit: second
 MAX_SLEEP_TIME = 3

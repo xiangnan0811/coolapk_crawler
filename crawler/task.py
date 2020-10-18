@@ -1,13 +1,13 @@
 from crawler.coolapk_crawler import CoolapkSpider
 from crawler.coolapk_mongo import CoolapkMongo
-from crawler.config import FEED_TO_UPDATE_DAYS, UPDATE_USER_FEEDS_DAYS
+from crawler.config import UPDATE_USER_FEEDS_AFTER, UPDATE_USER_FEEDS_BEFORE, UPDATE_LIMIT
 
 coolapk_mongo = CoolapkMongo()
 coolapk_crawler = CoolapkSpider()
 
 
 def update_feed_detail():
-    feed_ids = coolapk_mongo.find_recent_feed_ids(recent_time=FEED_TO_UPDATE_DAYS)
+    feed_ids = coolapk_mongo.find_recent_feed_ids(after_time=UPDATE_USER_FEEDS_AFTER, before_time=UPDATE_USER_FEEDS_BEFORE, limit=UPDATE_LIMIT)
     print(len(feed_ids))
     result = get_feed_detail_and_save(feed_ids)
     return result
@@ -42,14 +42,14 @@ def get_user_feeds_from_userhome(user_ids):
 
 
 def update_user_feeds_from_userhome():
-    user_ids = coolapk_mongo.find_recent_user_ids(recent_time=UPDATE_USER_FEEDS_DAYS)
+    user_ids = coolapk_mongo.find_recent_user_ids(after_time=UPDATE_USER_FEEDS_AFTER, before_time=UPDATE_USER_FEEDS_BEFORE, limit=UPDATE_LIMIT)
     print(len(user_ids))
     result = get_user_feeds_from_userhome(user_ids)
     return result
 
 
 def update_feed_reply():
-    feed_ids = coolapk_mongo.find_recent_feed_ids(recent_time=FEED_TO_UPDATE_DAYS)
+    feed_ids = coolapk_mongo.find_recent_feed_ids(after_time=UPDATE_USER_FEEDS_AFTER, before_time=UPDATE_USER_FEEDS_BEFORE, limit=UPDATE_LIMIT)
     print(len(feed_ids))
     result = get_feed_reply(feed_ids)
     return result
