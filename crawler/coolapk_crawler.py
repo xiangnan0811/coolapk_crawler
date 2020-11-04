@@ -4,13 +4,12 @@
 @desc: 
 """
 import time
+import uuid
 from datetime import datetime, timedelta
 import hashlib
 import requests
 from base64 import b64encode
-from random import choice
 from loguru import logger
-from crawler.config import DEVICE_LIST
 
 
 class CoolapkSpider:
@@ -30,7 +29,7 @@ class CoolapkSpider:
         Get the token value for the request API
         :return: the value of token
         """
-        device_id = choice(DEVICE_LIST)
+        device_id = uuid.uuid4()
         if self.token['value'] == '' or datetime.now() - self.token['time'] > timedelta(seconds=60 * 4):
             timestamp = int(time.time())
             v62 = f"token://com.coolapk.market/c67ef5943784d09750dcfbb31020f0ab?{hashlib.md5(str(timestamp).encode()).hexdigest()}${device_id}&com.coolapk.market"
@@ -155,9 +154,9 @@ class CoolapkSpider:
         feed_data['feed_Type'] = data.get("feedType")
         feed_data['feed_Type_Name'] = data.get("feedTypeName")
         feed_data['entityType'] = data.get("entityType")        # feed feed_reply user
-        extra_fromApi = data.get("extra_fromApi", None)
-        if extra_fromApi:
-            feed_data['extra_fromApi'] = self.host + extra_fromApi
+        extra_from_api = data.get("extra_fromApi", None)
+        if extra_from_api:
+            feed_data['extra_fromApi'] = self.host + extra_from_api
         long_location = data.get("long_location", None)
         feed_data['long_location'] = long_location if long_location else None
         feed_data['pic_list'] = data.get("picArr")
@@ -188,7 +187,7 @@ class CoolapkSpider:
             feed_data, user_data = self.__parse_feed_detail(data)
         else:
             logger.error(f" -- feed detail -- can't get feed detail which feed_id is {feed_id}, response is {response}")
-            feed_data, user_data = self.__parse_error(feed_id=feed_id, data=response)
+            feed_data, user_data = self.__parse_error(some_id=feed_id, data=response, mode='feed')
         return feed_data, user_data
 
     def __request_feed_reply(self, feed_id, page):
@@ -234,7 +233,7 @@ class CoolapkSpider:
             page += 1
             data = response.get("data", None)
             if not data:
-                logger.error(
+                logger.warning(
                     f" -- feed reply -- can't get feed reply feed_id --> {feed_id}, page --> {page}, response --> {response}")
                 break
             reply_info, user_info = self.__parse_feed_reply(data)
@@ -275,8 +274,16 @@ class CoolapkSpider:
 
     @staticmethod
     def __delete_duplicate(dict_list):
-        li = [dict(t) for t in set([tuple(d.items()) for d in dict_list])]
-        return li
+        if len(dict_list) == 1:
+            return dict_list
+        tmp = []
+        result = []
+        for x in dict_list:
+            x_id = x['id']
+            if x_id not in tmp:
+                tmp.append(x_id)
+                result.append(x)
+        return result
 
     def __request_user_feedlist(self, user_id, page, first_item=None, last_item=None):
         url = f"https://api.coolapk.com/v6/user/feedList"
@@ -303,7 +310,7 @@ class CoolapkSpider:
         if feed_list:
             first_item = feed_list[0]['id']
             last_item = feed_list[-1]['id']
-        return feed_list, user_list, first_item, last_item
+        return feed_list, self.__delete_duplicate(user_list), first_item, last_item
 
     def get_user_feedlist(self, user_id):
         page = 1
@@ -316,12 +323,32 @@ class CoolapkSpider:
             page += 1
             data = response.get("data", None)
             if not data:
+                logger.error(f" -- feed list -- can't get user feedlist user_id --> {user_id}, page --> {page}, response --> {response}")
+                _, user_data = self.__parse_error(some_id=user_id, data=response, mode='user')
+                user_infos.append(user_data)
                 break
-            feed_list, user_list, first_item, last_item = self.__parse_user_feedlist(data)
-            if feed_list:
-                feed_infos.extend(feed_list)
-            if user_list:
-                user_infos.extend(user_list)
+            elif isinstance(data, list):
+                feed_list, user_list, first_item, last_item = self.__parse_user_feedlist(data)
+                if feed_list:
+                    feed_infos.extend(feed_list)
+                if user_list:
+                    user_infos.extend(user_list)
+                if len(data) < 8:
+                    break
+            elif isinstance(data, dict) and 'message' not in data:
+                user_data = self.__parse_user(data)
+                if user_data:
+                    user_infos.append(user_data)
+                break
+            elif isinstance(data, dict) and 'message' in data:
+                feed_data, user_data = self.__parse_feed_detail(data)
+                if feed_data:
+                    feed_infos.append(feed_data)
+                if user_data:
+                    user_infos.append(user_data)
+                break
+            else:
+                logger.error(f" -- feed list -- can't get user feedlist user_id --> {user_id}, page --> {page}, response data --> {data}")
         return feed_infos, self.__delete_duplicate(user_infos)
 
     @staticmethod
@@ -489,7 +516,7 @@ class CoolapkSpider:
         return app_infos, feed_infos, user_infos, reply_infos, album_infos
 
     @staticmethod
-    def __parse_error(feed_id, data):
+    def __parse_error(some_id, data, mode):
         try:
             error = data.get('status', None)
             if error == -2:
@@ -498,7 +525,10 @@ class CoolapkSpider:
                 status = 'unauthorized'
             else:
                 status = 'unknown'
-            feed_data = {'id': feed_id, 'status': status}
-            return feed_data, None
+            data = {'id': some_id, 'status': status}
+            if mode == 'user':
+                return None, data
+            elif mode == 'feed':
+                return data, None
         except AttributeError:
             return None, None

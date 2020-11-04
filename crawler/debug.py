@@ -89,8 +89,8 @@ coolapk_spider = CoolapkSpider()
 # print(result)
 
 # 4. get get user feeds from userhome and save to mongo
-# result = task.update_user_feeds_from_userhome()
-# print(result)
+result = task.update_user_feeds_from_userhome()
+print(result)
 
 # 5. get update feed reply and save to mongo
 # result = task.update_feed_reply()
@@ -104,31 +104,31 @@ keywords = ["破解", "magisk", "刷机", "模块", "风景", "美女", "高清"
             'Moto', '摩托罗拉', '黑鲨', '黑莓', 'ROG', 'google', '谷歌', '佳能', '尼康', '松下', '耳机', '降噪', '真无线',
             'qq', '音乐', 'root', '天气', '阅读', 'iphone12', '原神', '图标包', 'kwgt', '桌面', '充电', '相机', 'airpods']
 
-result = task.search_feed(keywords)
-print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
-
-# 7. search_picture
-result = task.search_picture(keywords)
-print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
-
-# 8. search_discovery
-result = task.search_discovery(keywords)
-print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
-
-# 9. search_album
-result = task.search_album(keywords)
-print(f"album_count --> {result[0]}, user_count --> {result[1]}")
-
-# 10. search_apk
-result = task.search_apk(keywords)
-print(f"app_count --> {result}")
-
-# 11. search_game
-result = task.search_game(keywords)
-print(f"game_count --> {result}")
-
-# 12. search_user
-result = task.search_user(keywords)
-print(f"user_count --> {result}")
+# result = task.search_feed(keywords)
+# print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
+#
+# # 7. search_picture
+# result = task.search_picture(keywords)
+# print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
+#
+# # 8. search_discovery
+# result = task.search_discovery(keywords)
+# print(f"feed_count --> {result[0]}, user_count --> {result[1]}")
+#
+# # 9. search_album
+# result = task.search_album(keywords)
+# print(f"album_count --> {result[0]}, user_count --> {result[1]}")
+#
+# # 10. search_apk
+# result = task.search_apk(keywords)
+# print(f"app_count --> {result}")
+#
+# # 11. search_game
+# result = task.search_game(keywords)
+# print(f"game_count --> {result}")
+#
+# # 12. search_user
+# result = task.search_user(keywords)
+# print(f"user_count --> {result}")
 
 # ------------------------------  test tasks  ------------------------------ #

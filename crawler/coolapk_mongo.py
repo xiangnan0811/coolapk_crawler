@@ -119,7 +119,7 @@ class CoolapkMongo:
 
     def find_recent_feed_ids(self, after_time=1, before_time=0, limit=20000):
         after_time = timedelta(days=after_time)
-        before_time = timedelta(days=before_time)
+        before_time = timedelta(hours=before_time)
         now = datetime.now()
         before = now - before_time
         after = now - after_time
@@ -141,13 +141,13 @@ class CoolapkMongo:
             }, {
                 '$limit': limit,
             }
-        ])
+        ], batchSize=10000)
         feed_ids = [feed_id['_id'] for feed_id in list(result)]
         return feed_ids
 
     def find_recent_user_ids(self, after_time=1, before_time=0, limit=20000):
         after_time = timedelta(days=after_time)
-        before_time = timedelta(days=before_time)
+        before_time = timedelta(hours=before_time)
         now = datetime.now()
         before = now - before_time
         after = now - after_time
@@ -157,6 +157,9 @@ class CoolapkMongo:
                     'gather_time': {
                         '$lte': before,
                         '$gte': after,
+                    },
+                    'status': {
+                        "$nin": ['deleted', 'unauthorized', 'unknown']
                     }
                 }
             }, {
@@ -166,8 +169,8 @@ class CoolapkMongo:
             }, {
                 '$limit': limit,
             }
-        ])
-        user_ids = [user_id['_id'] for user_id in list(result)]
+        ], batchSize=10000)
+        user_ids = [res['_id'] for res in result]
         return user_ids
 
     @staticmethod
@@ -184,3 +187,6 @@ class CoolapkMongo:
             matched_count = 1
 
         return matched_count, modified_count, inserted_count
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.client.close()

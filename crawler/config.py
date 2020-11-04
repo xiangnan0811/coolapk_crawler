@@ -14,18 +14,10 @@ MONGO_USERNAME = "coolapk"
 MONGO_PASSWORD = "XXX"
 MONGO_DATABASE = "coolapk"
 
-# device_id list
-DEVICE_LIST = [
-    "XXX",
-    "XXX",
-]
-
-# the recent of feed to update, unit: day
-FEED_TO_UPDATE_DAYS = 10
-
-# the recent time to update user feeds, unit: day
+# the start time to update user feeds, unit: day
 UPDATE_USER_FEEDS_AFTER = 7
-UPDATE_USER_FEEDS_BEFORE = 0
+# the end time to update user feeds, unit: hour
+UPDATE_USER_FEEDS_BEFORE = 18
 UPDATE_LIMIT = 50000
 
 # max sleep time while requesting api, unit: second
